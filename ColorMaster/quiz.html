@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      background-color: #f0f0f0;
+    }
+    nav {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      background-color: #333;
+      color: white;
+      display: flex;
+      justify-content: center;
+      padding: 10px 0;
+    }
+    nav a {
+      color: white;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    #quiz-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 60px;
+    }
+    .color-box {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .options button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .message, .timer {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    .result {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <h1>Color Quiz</h1>
+  <div id="quiz-container">
+    <div class="color-box" id="colorBox"></div>
+    <div class="options" id="options"></div>
+    <div class="timer" id="timer">Time left: 5</div>
+    <div class="message" id="message"></div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const colors = [
+      "Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Pink", "Brown", "Cyan", "Magenta",
+      "Lime", "Teal", "Navy", "Maroon", "Olive", "Gray", "Black", "White", "Aqua", "Gold"
+    ];
+
+    let currentQuestion = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let timer;
+    let timeLeft = 5;
+
+    function getRandomColor() {
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function nextQuestion() {
+      if (currentQuestion >= 10) {
+        showResult();
+        return;
+      }
+
+      const colorName = getRandomColor();
+      document.getElementById("colorBox").style.backgroundColor = colorName;
+      document.getElementById("message").textContent = "";
+
+      const options = [...colors];
+      const shuffled = options.sort(() => 0.5 - Math.random()).slice(0, 4);
+      if (!shuffled.includes(colorName)) shuffled[0] = colorName;
+
+      const finalOptions = shuffled.sort(() => 0.5 - Math.random());
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      finalOptions.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(opt, colorName);
+        optionsDiv.appendChild(btn);
+      });
+
+      startTimer(() => {
+        document.getElementById("message").textContent = "Time's up! Moving to next question.";
+        incorrectCount++;
+        currentQuestion++;
+        setTimeout(nextQuestion, 1000);
+      });
+    }
+
+    function selectAnswer(selected, correct) {
+      clearInterval(timer);
+      if (selected === correct) {
+        correctCount++;
+        document.getElementById("message").textContent = "Correct!";
+      } else {
+        incorrectCount++;
+        document.getElementById("message").textContent = `Wrong! It was ${correct}.`;
+      }
+      currentQuestion++;
+      setTimeout(nextQuestion, 1000);
+    }
+
+    function startTimer(onTimeout) {
+      timeLeft = 5;
+      document.getElementById("timer").textContent = `Time left: ${timeLeft}`;
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = `Time left: ${timeLeft}`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          onTimeout();
+        }
+      }, 1000);
+    }
+
+    function showResult() {
+      document.getElementById("quiz-container").innerHTML =
+        `<div class="result">
+          Quiz Finished!<br>
+          Correct: ${correctCount}<br>
+          Incorrect: ${incorrectCount}<br>
+          ${incorrectCount > correctCount ? "You might be color blind." : "Great job!"}
+        </div>`;
+    }
+
+    nextQuestion();
+  </script>
+</body>
+</html>
